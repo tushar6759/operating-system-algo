@@ -1,37 +1,49 @@
-import threading as thread
+import threading 
+import time
 import random
-                 
-x = 0
-lock = thread.Lock()     
+write=threading.Lock()
+mutex=threading.Lock()
+readcount=0
 
-def Reader():
-    global x
-    print('Reader is Reading!')
-    lock.acquire()      
-    print('Shared Data:', x)
-    lock.release()      
-    print()
+def reader(n):
+    global mutex
+    mutex.acquire()
+    global readcount
+    global write
+    readcount=readcount+1
+    if readcount==1:
+        write.acquire()
+    mutex.release()
+    print("Reader {} is reading file\n".format(n))
+    time.sleep(2)
+    mutex.acquire()
+    readcount=readcount-1
+    if readcount==0:
+        print(readcount)
+        write.release()
+    mutex.release()
 
-def Writer():
-    global x
-    print('Writer is Writing!')
-    lock.acquire()       
-    x += 1              
-    print('Writer is Releasing the lock!')
-    lock.release()      
-    print()
+def writer(n):
+    global write
+    write.acquire()
+    print("Writer {} is writing into the file\n".format(n))
+    print("Writer {} is  closing the file\n".format(n))
+    time.sleep(2)
+    write.release()
 
-if __name__ == '__main__':
-    for i in range(0, 10):
+for i in range(0, 20):
         randomNumber = random.randint(0, 100)  
         if(randomNumber > 50):
-            Thread1 = thread.Thread(target = Reader)
+            Thread1 = threading.Thread(target = reader,args=(i,))
             Thread1.start()
         else:
-            Thread2 = thread.Thread(target = Writer)
+            Thread2 = threading.Thread(target = writer,args=(i,))
             Thread2.start()
 
 Thread1.join()
 Thread2.join()
 
- 
+
+
+
+
